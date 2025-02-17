@@ -1,10 +1,22 @@
-import { Stack } from "expo-router";
+import { Slot, useRouter } from "expo-router";
+import { useEffect } from "react";
+import { auth } from "@/firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function RootLayout() {
-	return (
-		<Stack>
-			<Stack.Screen name="(tabs)" options={{headerShown:false}} />
-			<Stack.Screen name="+not-found" />
-		</Stack>
-	);
+    const router = useRouter();
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                router.replace("/(tabs)/home");
+            } else {
+                router.replace("/(auth)/login");
+            }
+        });
+
+        return unsubscribe;
+    }, []);
+
+    return <Slot />;
 }
