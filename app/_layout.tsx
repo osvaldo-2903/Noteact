@@ -9,13 +9,13 @@ export default function RootLayout() {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                router.replace("/(tabs)/home");
+                router.replace("/(tabs)/home"); // Usuario logueado, redirige a Home
             } else {
-                router.replace("/(auth)/login");
+                router.replace("/(auth)/login"); // Usuario no logueado, redirige a Login
             }
         });
 
-        return unsubscribe;
+        return unsubscribe; // Limpia el listener al desmontar
     }, []);
 
     return <Slot />;

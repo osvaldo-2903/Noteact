@@ -14,10 +14,10 @@ const LoginScreen = () => {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             console.log("Usuario logueado:", userCredential.user.uid);
-            router.replace("/(tabs)/home"); // Redirige a la pantalla principal
+            router.replace("/(tabs)/home"); // Redirige a Home después del login
         } catch (error) {
             if (error instanceof FirebaseError) {
-                console.error("Error:", error);
+                console.error("Error:", error.message);
                 Alert.alert("Error", "Correo electrónico o contraseña incorrectos.");
             }
         }
