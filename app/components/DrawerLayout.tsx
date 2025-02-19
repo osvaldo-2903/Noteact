@@ -37,11 +37,12 @@ interface CustomDrawerContentProps {
 
 function CustomDrawerContent(props: CustomDrawerContentProps) {
     const user = auth.currentUser;
+    const router = useRouter(); // Usa useRouter de expo-router
 
     const handleLogout = async () => {
         try {
             await auth.signOut(); // Cierra la sesión
-            props.navigation.replace("/(auth)/login"); // Redirige al login
+            router.replace("/(auth)/login"); // Redirige al login usando router
         } catch (error) {
             if (error instanceof FirebaseError) {
                 console.error("Error al cerrar sesión:", error.message);
@@ -57,8 +58,8 @@ function CustomDrawerContent(props: CustomDrawerContentProps) {
             <Button
                 title="Cerrar Sesión"
                 onPress={() => {
-                    props.navigation.closeDrawer();
-                    handleLogout();
+                    props.navigation.closeDrawer(); // Cierra el menú lateral
+                    handleLogout(); // Llama a la función de cierre de sesión
                 }}
             />
         </View>
@@ -102,4 +103,4 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: "#666",
     },
-}); 
+});
