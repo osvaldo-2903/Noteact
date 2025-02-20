@@ -7,16 +7,41 @@ export default function HomeScreen() {
     const [dueDate, setDueDate] = useState("");
     const [tasks, setTasks] = useState<{ title: string; description: string; dueDate: string }[]>([]);
     const [modalVisible, setModalVisible] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [currentTaskIndex, setCurrentTaskIndex] = useState<number | null>(null);
 
     const addTask = () => {
         if (title && description && dueDate) {
             const newTask = { title, description, dueDate };
-            setTasks([...tasks, newTask]);
+            if (isEditing && currentTaskIndex !== null) {
+                const updatedTasks = [...tasks];
+                updatedTasks[currentTaskIndex] = newTask;
+                setTasks(updatedTasks);
+                setIsEditing(false);
+                setCurrentTaskIndex(null);
+            } else {
+                setTasks([...tasks, newTask]);
+            }
             setTitle("");
             setDescription("");
             setDueDate("");
             setModalVisible(false);
         }
+    };
+
+    const editTask = (index: number) => {
+        const task = tasks[index];
+        setTitle(task.title);
+        setDescription(task.description);
+        setDueDate(task.dueDate);
+        setIsEditing(true);
+        setCurrentTaskIndex(index);
+        setModalVisible(true);
+    };
+
+    const deleteTask = (index: number) => {
+        const updatedTasks = tasks.filter((_, i) => i !== index);
+        setTasks(updatedTasks);
     };
 
     return (
@@ -25,11 +50,15 @@ export default function HomeScreen() {
             <FlatList
                 data={tasks}
                 keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => (
+                renderItem={({ item, index }) => (
                     <View style={styles.task}>
                         <Text style={styles.taskTitle}>{item.title}</Text>
                         <Text>{item.description}</Text>
                         <Text>{item.dueDate}</Text>
+                        <View style={styles.taskButtons}>
+                            <Button title="Editar" onPress={() => editTask(index)} />
+                            <Button title="Eliminar" onPress={() => deleteTask(index)} />
+                        </View>
                     </View>
                 )}
                 style={styles.taskList}
@@ -61,7 +90,7 @@ export default function HomeScreen() {
                             style={styles.input}
                             keyboardType="numeric"
                         />
-                        <Button title="Agregar Tarea" onPress={addTask} />
+                        <Button title={isEditing ? "Guardar Cambios" : "Agregar Tarea"} onPress={addTask} />
                         <TouchableOpacity onPress={() => setModalVisible(false)}>
                             <Text style={styles.closeButton}>Cerrar</Text>
                         </TouchableOpacity>
@@ -94,6 +123,11 @@ const styles = StyleSheet.create({
     taskTitle: {
         fontSize: 18,
         fontWeight: "bold",
+    },
+    taskButtons: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginTop: 10,
     },
     modalContainer: {
         flex: 1,
