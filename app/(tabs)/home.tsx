@@ -33,10 +33,11 @@ export default function HomeScreen() {
                 style={styles.input}
             />
             <TextInput
-                placeholder="Fecha de Entrega"
+                placeholder="Fecha de Entrega (DD/MM/AAAA)"
                 value={dueDate}
                 onChangeText={setDueDate}
                 style={styles.input}
+                keyboardType="numeric"
             />
             <Button title="Agregar Tarea" onPress={addTask} />
             <FlatList
