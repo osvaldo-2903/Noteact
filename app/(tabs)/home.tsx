@@ -15,6 +15,7 @@ export default function HomeScreen() {
     const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const auth = getAuth();
     const user = auth.currentUser;
@@ -48,6 +49,9 @@ export default function HomeScreen() {
             setDescription(""); // Limpiar el input de descripción
             setDueDate(""); // Limpiar el input de fecha de entrega
             setModalVisible(false);
+            setErrorMessage(null); // Limpiar el mensaje de error
+        } else {
+            setErrorMessage("Todos los campos son obligatorios.");
         }
     };
 
@@ -76,9 +80,17 @@ export default function HomeScreen() {
         }
     };
 
+    const openAddTaskModal = () => {
+        setTitle("");
+        setDescription("");
+        setDueDate("");
+        setIsEditing(false);
+        setModalVisible(true);
+    };
+
     return (
         <View style={styles.container}>
-            <Button title="Agregar Tarea" onPress={() => setModalVisible(true)} />
+            <Button title="Agregar Tarea" onPress={openAddTaskModal} />
             <FlatList
                 data={tasks}
                 keyExtractor={(item) => item.id}
@@ -127,6 +139,7 @@ export default function HomeScreen() {
                             style={styles.input}
                             keyboardType="numeric"
                         />
+                        {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
                         <Button title={isEditing ? "Guardar Cambios" : "Agregar Tarea"} onPress={addTask} />
                         <TouchableOpacity onPress={() => setModalVisible(false)}>
                             <Text style={styles.closeButton}>Cerrar</Text>
@@ -244,5 +257,9 @@ const styles = StyleSheet.create({
     buttonText: {
         color: 'white',
         marginLeft: 5,
+    },
+    errorText: {
+        color: 'red',
+        marginBottom: 10,
     },
 });
