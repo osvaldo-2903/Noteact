@@ -12,6 +12,8 @@ export default function HomeScreen() {
     const [modalVisible, setModalVisible] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
+    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+    const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
 
     useEffect(() => {
         const unsubscribe = onSnapshot(collection(getFirestore(), 'tasks'), (querySnapshot) => {
@@ -54,8 +56,17 @@ export default function HomeScreen() {
         }
     };
 
-    const deleteTask = async (id: string) => {
-        await deleteDoc(doc(getFirestore(), 'tasks', id));
+    const confirmDeleteTask = (id: string) => {
+        setTaskToDelete(id);
+        setDeleteModalVisible(true);
+    };
+
+    const deleteTask = async () => {
+        if (taskToDelete) {
+            await deleteDoc(doc(getFirestore(), 'tasks', taskToDelete));
+            setDeleteModalVisible(false);
+            setTaskToDelete(null);
+        }
     };
 
     return (
@@ -73,7 +84,7 @@ export default function HomeScreen() {
                             <TouchableOpacity onPress={() => editTask(item.id)} style={styles.editButton}>
                                 <Ionicons name="pencil" size={20} color="white" />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => deleteTask(item.id)} style={styles.deleteButton}>
+                            <TouchableOpacity onPress={() => confirmDeleteTask(item.id)} style={styles.deleteButton}>
                                 <Ionicons name="trash" size={20} color="white" />
                             </TouchableOpacity>
                         </View>
@@ -113,6 +124,28 @@ export default function HomeScreen() {
                         <TouchableOpacity onPress={() => setModalVisible(false)}>
                             <Text style={styles.closeButton}>Cerrar</Text>
                         </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={deleteModalVisible}
+                onRequestClose={() => setDeleteModalVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalView}>
+                        <Text>¿Estás seguro de que deseas eliminar esta tarea?</Text>
+                        <View style={styles.confirmButtons}>
+                            <TouchableOpacity onPress={() => setDeleteModalVisible(false)} style={styles.cancelButton}>
+                                <Ionicons name="close" size={20} color="white" />
+                                <Text style={styles.buttonText}>Cancelar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={deleteTask} style={styles.confirmButton}>
+                                <Ionicons name="checkmark" size={20} color="white" />
+                                <Text style={styles.buttonText}>Eliminar</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
             </Modal>
@@ -180,5 +213,29 @@ const styles = StyleSheet.create({
     closeButton: {
         marginTop: 10,
         color: "blue",
+    },
+    confirmButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+    },
+    cancelButton: {
+        backgroundColor: 'gray',
+        padding: 10,
+        borderRadius: 5,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginRight: 10,
+    },
+    confirmButton: {
+        backgroundColor: 'red',
+        padding: 10,
+        borderRadius: 5,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    buttonText: {
+        color: 'white',
+        marginLeft: 5,
     },
 });
