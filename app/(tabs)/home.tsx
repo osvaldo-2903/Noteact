@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, FlatList, StyleSheet, Modal, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons"
 
 export default function HomeScreen() {
     const [title, setTitle] = useState("");
@@ -56,8 +57,12 @@ export default function HomeScreen() {
                         <Text>{item.description}</Text>
                         <Text>{item.dueDate}</Text>
                         <View style={styles.taskButtons}>
-                            <Button title="Editar" onPress={() => editTask(index)} />
-                            <Button title="Eliminar" onPress={() => deleteTask(index)} />
+                            <TouchableOpacity onPress={() => editTask(index)} style={styles.editButton}>
+                                <Ionicons name="pencil" size={20} color="white" />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => deleteTask(index)} style={styles.deleteButton}>
+                                <Ionicons name="trash" size={20} color="white" />
+                            </TouchableOpacity>
                         </View>
                     </View>
                 )}
@@ -81,7 +86,8 @@ export default function HomeScreen() {
                             placeholder="Descripción"
                             value={description}
                             onChangeText={setDescription}
-                            style={styles.input}
+                            style={[styles.input, styles.descriptionInput]}
+                            multiline
                         />
                         <TextInput
                             placeholder="Fecha de Entrega (DD/MM/AAAA)"
@@ -111,6 +117,11 @@ const styles = StyleSheet.create({
         padding: 10,
         borderWidth: 1,
         borderColor: "#ccc",
+        width: '100%',
+    },
+    descriptionInput: {
+        height: 100,
+        textAlignVertical: 'top',
     },
     taskList: {
         marginTop: 20,
@@ -126,8 +137,19 @@ const styles = StyleSheet.create({
     },
     taskButtons: {
         flexDirection: "row",
-        justifyContent: "space-between",
+        justifyContent: "flex-end",
         marginTop: 10,
+    },
+    editButton: {
+        backgroundColor: 'blue',
+        padding: 10,
+        borderRadius: 5,
+        marginRight: 10,
+    },
+    deleteButton: {
+        backgroundColor: 'red',
+        padding: 10,
+        borderRadius: 5,
     },
     modalContainer: {
         flex: 1,
