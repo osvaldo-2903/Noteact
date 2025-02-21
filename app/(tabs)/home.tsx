@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Button, FlatList, StyleSheet, Modal, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Picker } from '@react-native-picker/picker';
 import { doc, getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, query, where } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import firebase from "firebase/app";
@@ -8,7 +9,9 @@ import firebase from "firebase/app";
 export default function HomeScreen() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [dueDate, setDueDate] = useState("");
+    const [dueDay, setDueDay] = useState("1");
+    const [dueMonth, setDueMonth] = useState("1");
+    const [dueYear, setDueYear] = useState("");
     const [tasks, setTasks] = useState<{ id: string; title: string; description: string; dueDate: string }[]>([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -36,7 +39,8 @@ export default function HomeScreen() {
     }, [user]);
 
     const addTask = async () => {
-        if (title && description && dueDate && user) {
+        if (title && description && dueDay && dueMonth && dueYear && user) {
+            const dueDate = `${dueDay}/${dueMonth}/${dueYear}`;
             const newTask = { title, description, dueDate, userId: user.uid };
             if (isEditing && currentTaskId) {
                 await updateDoc(doc(getFirestore(), 'tasks', currentTaskId), newTask);
@@ -47,7 +51,9 @@ export default function HomeScreen() {
             }
             setTitle(""); // Limpiar el input de título
             setDescription(""); // Limpiar el input de descripción
-            setDueDate(""); // Limpiar el input de fecha de entrega
+            setDueDay("1"); // Limpiar el input de día
+            setDueMonth("1"); // Limpiar el input de mes
+            setDueYear(""); // Limpiar el input de año
             setModalVisible(false);
             setErrorMessage(null); // Limpiar el mensaje de error
         } else {
@@ -60,7 +66,10 @@ export default function HomeScreen() {
         if (task) {
             setTitle(task.title);
             setDescription(task.description);
-            setDueDate(task.dueDate);
+            const [day, month, year] = task.dueDate.split('/');
+            setDueDay(day);
+            setDueMonth(month);
+            setDueYear(year);
             setIsEditing(true);
             setCurrentTaskId(id);
             setModalVisible(true);
@@ -83,7 +92,9 @@ export default function HomeScreen() {
     const openAddTaskModal = () => {
         setTitle("");
         setDescription("");
-        setDueDate("");
+        setDueDay("1");
+        setDueMonth("1");
+        setDueYear("");
         setIsEditing(false);
         setModalVisible(true);
     };
@@ -132,13 +143,33 @@ export default function HomeScreen() {
                             style={[styles.input, styles.descriptionInput]}
                             multiline
                         />
-                        <TextInput
-                            placeholder="Fecha de Entrega (DD/MM/AAAA)"
-                            value={dueDate}
-                            onChangeText={setDueDate}
-                            style={styles.input}
-                            keyboardType="numeric"
-                        />
+                        <View style={styles.datePickerContainer}>
+                            <Picker
+                                selectedValue={dueDay}
+                                style={styles.picker}
+                                onValueChange={(itemValue) => setDueDay(itemValue)}
+                            >
+                                {[...Array(31).keys()].map(day => (
+                                    <Picker.Item key={day + 1} label={`${day + 1}`} value={`${day + 1}`} />
+                                ))}
+                            </Picker>
+                            <Picker
+                                selectedValue={dueMonth}
+                                style={styles.picker}
+                                onValueChange={(itemValue) => setDueMonth(itemValue)}
+                            >
+                                {[...Array(12).keys()].map(month => (
+                                    <Picker.Item key={month + 1} label={`${month + 1}`} value={`${month + 1}`} />
+                                ))}
+                            </Picker>
+                            <TextInput
+                                placeholder="Año"
+                                value={dueYear}
+                                onChangeText={setDueYear}
+                                style={styles.yearInput}
+                                keyboardType="numeric"
+                            />
+                        </View>
                         {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
                         <View style={styles.confirmButtons}>
                             <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
@@ -267,5 +298,22 @@ const styles = StyleSheet.create({
     errorText: {
         color: 'red',
         marginBottom: 10,
+    },
+    datePickerContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    picker: {
+        flex: 1,
+        height: 50,
+    },
+    yearInput: {
+        flex: 1,
+        marginLeft: 10,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: "#ccc",
     },
 });
