@@ -1,48 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Button, FlatList, StyleSheet, Modal, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons"
+import { Ionicons } from "@expo/vector-icons";
+import { doc, setDoc, getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import firebase from "firebase/app";
 
 export default function HomeScreen() {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [dueDate, setDueDate] = useState("");
-    const [tasks, setTasks] = useState<{ title: string; description: string; dueDate: string }[]>([]);
+    const [tasks, setTasks] = useState<{ id: string; title: string; description: string; dueDate: string }[]>([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [currentTaskIndex, setCurrentTaskIndex] = useState<number | null>(null);
+    const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
 
-    const addTask = () => {
+    useEffect(() => {
+        const unsubscribe = onSnapshot(collection(getFirestore(), 'tasks'), (querySnapshot) => {
+                const tasks = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                })) as { id: string; title: string; description: string; dueDate: string }[];
+                setTasks(tasks);
+            });
+
+        return () => unsubscribe();
+    }, []);
+
+    const addTask = async () => {
         if (title && description && dueDate) {
             const newTask = { title, description, dueDate };
-            if (isEditing && currentTaskIndex !== null) {
-                const updatedTasks = [...tasks];
-                updatedTasks[currentTaskIndex] = newTask;
-                setTasks(updatedTasks);
+            if (isEditing && currentTaskId) {
+                await updateDoc(doc(getFirestore(), 'tasks', currentTaskId), newTask);
                 setIsEditing(false);
-                setCurrentTaskIndex(null);
+                setCurrentTaskId(null);
             } else {
-                setTasks([...tasks, newTask]);
+                await addDoc(collection(getFirestore(), 'tasks'), newTask);
             }
-            setTitle("");
-            setDescription("");
-            setDueDate("");
+            setTitle(""); // Limpiar el input de título
+            setDescription(""); // Limpiar el input de descripción
+            setDueDate(""); // Limpiar el input de fecha de entrega
             setModalVisible(false);
         }
     };
 
-    const editTask = (index: number) => {
-        const task = tasks[index];
-        setTitle(task.title);
-        setDescription(task.description);
-        setDueDate(task.dueDate);
-        setIsEditing(true);
-        setCurrentTaskIndex(index);
-        setModalVisible(true);
+    const editTask = (id: string) => {
+        const task = tasks.find(task => task.id === id);
+        if (task) {
+            setTitle(task.title);
+            setDescription(task.description);
+            setDueDate(task.dueDate);
+            setIsEditing(true);
+            setCurrentTaskId(id);
+            setModalVisible(true);
+        }
     };
 
-    const deleteTask = (index: number) => {
-        const updatedTasks = tasks.filter((_, i) => i !== index);
-        setTasks(updatedTasks);
+    const deleteTask = async (id: string) => {
+        await deleteDoc(doc(getFirestore(), 'tasks', id));
     };
 
     return (
@@ -50,17 +63,17 @@ export default function HomeScreen() {
             <Button title="Agregar Tarea" onPress={() => setModalVisible(true)} />
             <FlatList
                 data={tasks}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item, index }) => (
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
                     <View style={styles.task}>
                         <Text style={styles.taskTitle}>{item.title}</Text>
                         <Text>{item.description}</Text>
-                        <Text>{item.dueDate}</Text>
+                        <Text>Fecha de entrega: {item.dueDate}</Text>
                         <View style={styles.taskButtons}>
-                            <TouchableOpacity onPress={() => editTask(index)} style={styles.editButton}>
+                            <TouchableOpacity onPress={() => editTask(item.id)} style={styles.editButton}>
                                 <Ionicons name="pencil" size={20} color="white" />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => deleteTask(index)} style={styles.deleteButton}>
+                            <TouchableOpacity onPress={() => deleteTask(item.id)} style={styles.deleteButton}>
                                 <Ionicons name="trash" size={20} color="white" />
                             </TouchableOpacity>
                         </View>
@@ -136,9 +149,9 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
     taskButtons: {
-        flexDirection: "row",
+        flexDirection: 'row',
         justifyContent: "flex-end",
-        marginTop: 10,
+        marginTop: 5,
     },
     editButton: {
         backgroundColor: 'blue',
@@ -158,7 +171,7 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(0,0,0,0.5)",
     },
     modalView: {
-        width: 300,
+        width: '90%',
         padding: 20,
         backgroundColor: "white",
         borderRadius: 10,
