@@ -166,7 +166,7 @@ export default function HomeScreen() {
                                 placeholder="Año"
                                 value={dueYear}
                                 onChangeText={setDueYear}
-                                style={styles.yearInput}
+                                style={[styles.input, styles.yearInput]}
                                 keyboardType="numeric"
                             />
                         </View>
@@ -220,6 +220,7 @@ const styles = StyleSheet.create({
         padding: 10,
         borderWidth: 1,
         borderColor: "#ccc",
+        borderRadius: 10,
         width: '100%',
     },
     descriptionInput: {
@@ -308,12 +309,19 @@ const styles = StyleSheet.create({
     picker: {
         flex: 1,
         height: 50,
+        marginRight: 10,
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 10,
+        backgroundColor: "#fff",
     },
     yearInput: {
         flex: 1,
-        marginLeft: 10,
         padding: 10,
         borderWidth: 1,
         borderColor: "#ccc",
+        borderRadius: 10,
+        backgroundColor: "#fff",
+        height: 50,
     },
 });
