@@ -140,10 +140,16 @@ export default function HomeScreen() {
                             keyboardType="numeric"
                         />
                         {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-                        <Button title={isEditing ? "Guardar Cambios" : "Agregar Tarea"} onPress={addTask} />
-                        <TouchableOpacity onPress={() => setModalVisible(false)}>
-                            <Text style={styles.closeButton}>Cerrar</Text>
-                        </TouchableOpacity>
+                        <View style={styles.confirmButtons}>
+                            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
+                                <Ionicons name="close" size={20} color="white" />
+                                <Text style={styles.buttonText}>Cerrar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={addTask} style={styles.confirmButton}>
+                                <Ionicons name="checkmark" size={20} color="white" />
+                                <Text style={styles.buttonText}>{isEditing ? "Guardar Cambios" : "Agregar Tarea"}</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
             </Modal>
@@ -248,7 +254,7 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
     confirmButton: {
-        backgroundColor: 'red',
+        backgroundColor: 'green',
         padding: 10,
         borderRadius: 5,
         flexDirection: 'row',
