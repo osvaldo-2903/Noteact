@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Button, FlatList, StyleSheet, Modal, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { doc, setDoc, getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { doc, getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, query, where } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import firebase from "firebase/app";
 
 export default function HomeScreen() {
@@ -15,8 +16,13 @@ export default function HomeScreen() {
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
 
+    const auth = getAuth();
+    const user = auth.currentUser;
+
     useEffect(() => {
-        const unsubscribe = onSnapshot(collection(getFirestore(), 'tasks'), (querySnapshot) => {
+        if (user) {
+            const q = query(collection(getFirestore(), 'tasks'), where("userId", "==", user.uid));
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
                 const tasks = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
@@ -24,12 +30,13 @@ export default function HomeScreen() {
                 setTasks(tasks);
             });
 
-        return () => unsubscribe();
-    }, []);
+            return () => unsubscribe();
+        }
+    }, [user]);
 
     const addTask = async () => {
-        if (title && description && dueDate) {
-            const newTask = { title, description, dueDate };
+        if (title && description && dueDate && user) {
+            const newTask = { title, description, dueDate, userId: user.uid };
             if (isEditing && currentTaskId) {
                 await updateDoc(doc(getFirestore(), 'tasks', currentTaskId), newTask);
                 setIsEditing(false);
